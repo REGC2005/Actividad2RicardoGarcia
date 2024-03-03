@@ -1,0 +1,59 @@
+csharp
+using System;
+using System.Threading;
+
+class CuentaBancaria
+{
+    private object locker = new object();
+    private decimal saldo;
+
+    public CuentaBancaria(decimal saldoInicial)
+    {
+        saldo = saldoInicial;
+    }
+
+    public void RealizarRetiro(decimal cantidad)
+    {
+        lock (locker)
+        {
+            if (cantidad > saldo)
+            {
+                Console.WriteLine("Fondos insuficientes");
+                return;
+            }
+
+            Console.WriteLine("Realizando retiro de: " + cantidad);
+            saldo -= cantidad;
+            Console.WriteLine("Nuevo saldo: " + saldo);
+        }
+    }
+
+    public void RealizarIngreso(decimal cantidad)
+    {
+        lock (locker)
+        {
+            Console.WriteLine("Realizando ingreso de: " + cantidad);
+            saldo += cantidad;
+            Console.WriteLine("Nuevo saldo: " + saldo);
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        CuentaBancaria cuenta = new CuentaBancaria(1000);
+
+        Thread hiloRetiro = new Thread(() => cuenta.RealizarRetiro(500));
+        Thread hiloIngreso = new Thread(() => cuenta.RealizarIngreso(300));
+
+        hiloRetiro.Start();
+        hiloIngreso.Start();
+
+        hiloRetiro.Join();
+        hiloIngreso.Join();
+
+        Console.WriteLine("Saldo final: " + cuenta.Saldo);
+    }
+}
